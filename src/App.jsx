@@ -191,7 +191,7 @@ const App = () => {
                   value={birthdate}
                   onChange={(e) => validateAndSetDate(e.target.value)}
                   max={new Date().toISOString().split('T')[0]}
-                  className="w-64 px-4 py-2 border border-gray-300 rounded-md"
+                  className="block w-full max-w-xs mx-auto px-4 py-2 border border-gray-300 rounded-md"
                 />
                 {dateError && (
                   <p className="text-red-500 text-sm mt-1">{t.dateError}</p>
@@ -199,7 +199,7 @@ const App = () => {
               </div>
               <button
                 onClick={handleVisualize}
-                className="w-64 bg-blue-600 text-white px-6 py-3 rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="block w-full max-w-xs mx-auto bg-blue-600 text-white px-6 py-3 rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
                 disabled={!birthdate || dateError}
               >
                 {t.visualizeButton}
@@ -215,12 +215,12 @@ const App = () => {
   const t = translations[language];
 
   return (
-    <div className="h-screen bg-gray-100 flex flex-col p-8">
+    <div className="h-screen bg-gray-100 flex flex-col p-4 sm:p-6 lg:p-8">
       <LanguageToggle />
       <div className="flex-1 flex flex-col space-y-3 min-h-0">
         <div className="bg-white rounded-lg shadow-lg">
-          <div 
-            className="p-3 flex justify-between items-center cursor-pointer hover:bg-gray-50"
+          <div
+            className="p-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between cursor-pointer hover:bg-gray-50"
             onClick={() => setIsPanelOpen(!isPanelOpen)}
           >
             <div className="flex items-center">
@@ -235,7 +235,7 @@ const App = () => {
                 setView('landing');
                 window.history.pushState({}, '', window.location.pathname);
               }}
-              className="px-3 py-2 text-gray-600 hover:text-gray-900"
+              className="px-3 py-2 text-gray-600 hover:text-gray-900 self-start sm:self-auto"
             >
               {t.back}
             </button>
