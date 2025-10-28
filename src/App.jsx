@@ -391,18 +391,18 @@ const VisualizationView = ({
           </div>
         </div>
 
-        <div className="grid gap-6 lg:grid-cols-[1fr_1.1fr]">
+        <div className="grid gap-6 lg:grid-cols-[1.2fr_1fr]">
           <div className="flex flex-col gap-6">
-            <div className="grid gap-4 md:grid-cols-3">
-              <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <div className="grid gap-3 md:grid-cols-3">
+              <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
                 <p className="text-xs uppercase tracking-wide text-slate-400">{t.born}</p>
-                <p className="mt-2 text-base font-semibold text-slate-900 break-words">{formatDate(birthdate, language)}</p>
+                <p className="mt-2 text-sm font-semibold text-slate-900 break-words">{formatDate(birthdate, language)}</p>
               </div>
-              <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+              <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
                 <p className="text-xs uppercase tracking-wide text-slate-400">{t.weeksLived}</p>
                 <p className="mt-2 text-3xl font-bold text-slate-900">{weeks.lived}</p>
               </div>
-              <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+              <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
                 <p className="text-xs uppercase tracking-wide text-slate-400">{t.weeksRemaining}</p>
                 <p className="mt-2 text-3xl font-bold text-slate-900">{Math.max(TOTAL_WEEKS - weeks.lived, 0)}</p>
               </div>
