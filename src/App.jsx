@@ -2,12 +2,12 @@ import React, { useEffect, useMemo, useState } from 'react';
 import LogoMark from './components/LogoMark.jsx';
 
 const TOTAL_WEEKS = 4000;
-const GRID_MAX_WIDTH = 640;
+const GRID_MAX_WIDTH = 760;
 const GRID_MIN_WIDTH = 200;
 const GRID_MIN_HEIGHT = 420;
-const GRID_MAX_HEIGHT = 640;
-const GRID_HEIGHT_VIEWPORT_RATIO = 0.58;
-const GRID_WIDTH_VIEWPORT_RATIO = 0.52;
+const GRID_MAX_HEIGHT = 720;
+const GRID_HEIGHT_VIEWPORT_RATIO = 0.64;
+const GRID_WIDTH_VIEWPORT_RATIO = 0.56;
 
 const translations = {
   en: {
@@ -228,50 +228,94 @@ const VisualizationView = ({
 }) => {
   const [gridContainerRef, gridContainerSize] = useResizeObserver();
 
-  const { cols, cellSize, gap } = useMemo(() => {
-    const fallbackWidth = Math.min(
-      Math.max(dimensions.width * GRID_WIDTH_VIEWPORT_RATIO, GRID_MIN_WIDTH),
-      GRID_MAX_WIDTH,
-    );
-    const width = Math.min(gridContainerSize.width || fallbackWidth, GRID_MAX_WIDTH);
-    const preferredRatio = width >= 1280 ? 2.6 : width >= 1024 ? 2.3 : width >= 768 ? 2 : width >= 640 ? 1.7 : 1.5;
-    const gapSize = width >= 1280 ? 6 : width >= 1024 ? 5 : width >= 768 ? 4 : width >= 640 ? 4 : 3;
+  const containerMaxWidth = useMemo(
+    () =>
+      Math.min(
+        Math.max(dimensions.width * GRID_WIDTH_VIEWPORT_RATIO, GRID_MIN_WIDTH),
+        GRID_MAX_WIDTH,
+      ),
+    [dimensions.width],
+  );
 
-    let estimatedColumns = Math.max(Math.ceil(Math.sqrt(TOTAL_WEEKS * preferredRatio)), 1);
-    estimatedColumns = Math.min(estimatedColumns, TOTAL_WEEKS);
+  const containerMaxHeight = useMemo(
+    () =>
+      Math.min(
+        Math.max(dimensions.height * GRID_HEIGHT_VIEWPORT_RATIO, GRID_MIN_HEIGHT),
+        GRID_MAX_HEIGHT,
+      ),
+    [dimensions.height],
+  );
+
+  const { cols, cellSize, gap } = useMemo(() => {
+    const width = Math.max(
+      Math.min(gridContainerSize.width || containerMaxWidth, containerMaxWidth),
+      GRID_MIN_WIDTH,
+    );
+
+    const preferredRatio = width >= 720 ? 2.6 : width >= 640 ? 2.3 : width >= 520 ? 2 : width >= 420 ? 1.7 : 1.5;
+    const gapSize = width >= 720 ? 6 : width >= 640 ? 5 : width >= 520 ? 4 : width >= 420 ? 4 : 3;
 
     const calculateCellSize = (columns) => {
       if (columns <= 0) return 0;
-      return Math.floor((width - gapSize * (columns - 1)) / columns);
+      const usableWidth = width - gapSize * (columns - 1);
+      if (usableWidth <= 0) return 0;
+      return Math.floor(usableWidth / columns);
     };
 
-    let size = calculateCellSize(estimatedColumns);
-    while (size <= 2 && estimatedColumns > 1) {
-      estimatedColumns -= 1;
-      size = calculateCellSize(estimatedColumns);
+    const computeHeight = (columns, size) => {
+      const rows = Math.ceil(TOTAL_WEEKS / columns);
+      return rows * size + Math.max(rows - 1, 0) * gapSize;
+    };
+
+    const baseColumns = Math.min(
+      Math.max(Math.ceil(Math.sqrt(TOTAL_WEEKS * preferredRatio)), 1),
+      TOTAL_WEEKS,
+    );
+    const baseSize = Math.max(calculateCellSize(baseColumns), 2);
+    const maxColumnsByWidth = Math.max(
+      1,
+      Math.min(TOTAL_WEEKS, Math.floor((width + gapSize) / (2 + gapSize))),
+    );
+
+    let bestConfig = null;
+    let bestDifference = Infinity;
+
+    for (let columns = 1; columns <= maxColumnsByWidth; columns += 1) {
+      const size = calculateCellSize(columns);
+      if (size < 2) {
+        break;
+      }
+
+      const heightNeeded = computeHeight(columns, size);
+      if (heightNeeded > containerMaxHeight) {
+        continue;
+      }
+
+      const difference = Math.abs(containerMaxHeight - heightNeeded);
+      if (
+        !bestConfig ||
+        size > bestConfig.cellSize ||
+        (size === bestConfig.cellSize && difference < bestDifference)
+      ) {
+        bestConfig = { cols: columns, cellSize: size };
+        bestDifference = difference;
+      }
     }
 
-    const rows = Math.ceil(TOTAL_WEEKS / estimatedColumns);
-    const fallbackHeight = Math.min(
-      Math.max(dimensions.height * GRID_HEIGHT_VIEWPORT_RATIO, GRID_MIN_HEIGHT),
-      GRID_MAX_HEIGHT,
-    );
-    const maxHeight = gridContainerSize.height || fallbackHeight;
-    const requiredHeight = rows * size + (rows - 1) * gapSize;
-    if (Number.isFinite(maxHeight) && requiredHeight > maxHeight) {
-      const heightBased = Math.floor((maxHeight - (rows - 1) * gapSize) / rows);
-      size = Math.max(Math.min(size, heightBased), 2);
+    if (!bestConfig) {
+      const fallbackColumns = Math.max(Math.min(baseColumns, maxColumnsByWidth), 1);
+      const fallbackSize = Math.max(Math.min(baseSize, calculateCellSize(fallbackColumns)), 2);
+      bestConfig = { cols: fallbackColumns, cellSize: fallbackSize };
     }
 
     return {
-      cols: estimatedColumns,
-      cellSize: Math.max(size, 2),
+      cols: bestConfig.cols,
+      cellSize: bestConfig.cellSize,
       gap: gapSize,
     };
   }, [
-    dimensions.height,
-    dimensions.width,
-    gridContainerSize.height,
+    containerMaxHeight,
+    containerMaxWidth,
     gridContainerSize.width,
   ]);
 
@@ -378,10 +422,10 @@ const VisualizationView = ({
               ref={gridContainerRef}
               className="relative mx-auto w-full"
               style={{
-                maxWidth: 'min(100%, 640px)',
-                height: `clamp(${GRID_MIN_HEIGHT}px, ${Math.round(
-                  GRID_HEIGHT_VIEWPORT_RATIO * 100,
-                )}vh, ${GRID_MAX_HEIGHT}px)`,
+                maxWidth: `${Math.round(containerMaxWidth)}px`,
+                width: '100%',
+                minHeight: `${GRID_MIN_HEIGHT}px`,
+                maxHeight: `${Math.round(containerMaxHeight)}px`,
               }}
             >
               <div className="flex h-full w-full items-center justify-center px-1">
