@@ -2,6 +2,12 @@ import React, { useEffect, useMemo, useState } from 'react';
 import LogoMark from './components/LogoMark.jsx';
 
 const TOTAL_WEEKS = 4000;
+const GRID_MAX_WIDTH = 640;
+const GRID_MIN_WIDTH = 200;
+const GRID_MIN_HEIGHT = 420;
+const GRID_MAX_HEIGHT = 640;
+const GRID_HEIGHT_VIEWPORT_RATIO = 0.58;
+const GRID_WIDTH_VIEWPORT_RATIO = 0.52;
 
 const translations = {
   en: {
@@ -223,8 +229,11 @@ const VisualizationView = ({
   const [gridContainerRef, gridContainerSize] = useResizeObserver();
 
   const { cols, cellSize, gap } = useMemo(() => {
-    const fallbackWidth = Math.max(dimensions.width - 160, 320);
-    const width = gridContainerSize.width || fallbackWidth;
+    const fallbackWidth = Math.min(
+      Math.max(dimensions.width * GRID_WIDTH_VIEWPORT_RATIO, GRID_MIN_WIDTH),
+      GRID_MAX_WIDTH,
+    );
+    const width = Math.min(gridContainerSize.width || fallbackWidth, GRID_MAX_WIDTH);
     const preferredRatio = width >= 1280 ? 2.6 : width >= 1024 ? 2.3 : width >= 768 ? 2 : width >= 640 ? 1.7 : 1.5;
     const gapSize = width >= 1280 ? 6 : width >= 1024 ? 5 : width >= 768 ? 4 : width >= 640 ? 4 : 3;
 
@@ -243,19 +252,28 @@ const VisualizationView = ({
     }
 
     const rows = Math.ceil(TOTAL_WEEKS / estimatedColumns);
-    const maxHeight = gridContainerSize.height || Infinity;
+    const fallbackHeight = Math.min(
+      Math.max(dimensions.height * GRID_HEIGHT_VIEWPORT_RATIO, GRID_MIN_HEIGHT),
+      GRID_MAX_HEIGHT,
+    );
+    const maxHeight = gridContainerSize.height || fallbackHeight;
     const requiredHeight = rows * size + (rows - 1) * gapSize;
     if (Number.isFinite(maxHeight) && requiredHeight > maxHeight) {
       const heightBased = Math.floor((maxHeight - (rows - 1) * gapSize) / rows);
-      size = Math.max(Math.min(size, heightBased), 4);
+      size = Math.max(Math.min(size, heightBased), 2);
     }
 
     return {
       cols: estimatedColumns,
-      cellSize: Math.max(size, 4),
+      cellSize: Math.max(size, 2),
       gap: gapSize,
     };
-  }, [dimensions.width, gridContainerSize.height, gridContainerSize.width]);
+  }, [
+    dimensions.height,
+    dimensions.width,
+    gridContainerSize.height,
+    gridContainerSize.width,
+  ]);
 
   const shareLink = useMemo(() => {
     if (typeof window === 'undefined') {
@@ -356,38 +374,49 @@ const VisualizationView = ({
           </div>
 
           <div className="flex flex-col gap-6 rounded-3xl border border-slate-200 bg-white p-4 shadow-xl sm:p-8">
-            <div ref={gridContainerRef} className="w-full">
-              <div
-                className="grid justify-center"
-                style={{
-                  gridTemplateColumns: `repeat(${cols}, ${cellSize}px)`,
-                  gridAutoRows: `${cellSize}px`,
-                  gap: `${gap}px`,
-                }}
-              >
-                {Array.from({ length: TOTAL_WEEKS }).map((_, index) => {
-                  const state =
-                    index < weeks.lived
-                      ? 'past'
-                      : index === weeks.lived
-                        ? 'present'
-                        : 'future';
+            <div
+              ref={gridContainerRef}
+              className="relative mx-auto w-full"
+              style={{
+                maxWidth: 'min(100%, 640px)',
+                height: `clamp(${GRID_MIN_HEIGHT}px, ${Math.round(
+                  GRID_HEIGHT_VIEWPORT_RATIO * 100,
+                )}vh, ${GRID_MAX_HEIGHT}px)`,
+              }}
+            >
+              <div className="flex h-full w-full items-center justify-center px-1">
+                <div
+                  className="grid"
+                  style={{
+                    gridTemplateColumns: `repeat(${cols}, ${cellSize}px)`,
+                    gridAutoRows: `${cellSize}px`,
+                    gap: `${gap}px`,
+                  }}
+                >
+                  {Array.from({ length: TOTAL_WEEKS }).map((_, index) => {
+                    const state =
+                      index < weeks.lived
+                        ? 'past'
+                        : index === weeks.lived
+                          ? 'present'
+                            : 'future';
 
-                  const palette =
-                    state === 'past'
-                      ? 'bg-slate-900'
+                    const palette =
+                      state === 'past'
+                        ? 'bg-slate-900'
                       : state === 'present'
                         ? 'bg-amber-400'
                         : 'bg-slate-200';
 
-                  return (
-                    <span
-                      key={index}
-                      className={`block h-full w-full rounded-full transition-colors duration-300 ${palette}`}
-                      style={{ width: `${cellSize}px`, height: `${cellSize}px` }}
-                    />
-                  );
-                })}
+                    return (
+                      <span
+                        key={index}
+                        className={`block h-full w-full rounded-full transition-colors duration-300 ${palette}`}
+                        style={{ width: `${cellSize}px`, height: `${cellSize}px` }}
+                      />
+                    );
+                  })}
+                </div>
               </div>
             </div>
 
