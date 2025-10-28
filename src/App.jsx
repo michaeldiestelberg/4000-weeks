@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import Logo from './components/Logo';
 
 const App = () => {
   const [view, setView] = useState('landing');
@@ -178,7 +179,10 @@ const App = () => {
         <LanguageToggle />
         <div className="max-w-2xl mx-auto">
           <div className="text-center">
-            <h1 className="text-4xl font-bold text-gray-900 mb-8">{t.title}</h1>
+            <div className="flex items-center justify-center gap-4 mb-8">
+              <Logo size="xl" />
+              <h1 className="text-4xl font-bold text-gray-900">{t.title}</h1>
+            </div>
             <p className="text-xl text-gray-600 mb-8">{t.intro}</p>
             <div className="mt-8 space-y-6">
               <div>
@@ -223,11 +227,14 @@ const App = () => {
             className="p-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between cursor-pointer hover:bg-gray-50"
             onClick={() => setIsPanelOpen(!isPanelOpen)}
           >
-            <div className="flex items-center">
-              <h2 className="text-xl font-bold text-gray-900">{t.yourLifeInWeeks}</h2>
-              <span className="ml-2 text-gray-500">
-                {isPanelOpen ? t.clickToCollapse : t.clickToExpand}
-              </span>
+            <div className="flex items-center gap-3">
+              <Logo size="md" />
+              <div className="flex items-center">
+                <h2 className="text-xl font-bold text-gray-900">{t.yourLifeInWeeks}</h2>
+                <span className="ml-2 text-gray-500 text-sm">
+                  {isPanelOpen ? t.clickToCollapse : t.clickToExpand}
+                </span>
+              </div>
             </div>
             <button
               onClick={(e) => {
