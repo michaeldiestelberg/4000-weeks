@@ -391,12 +391,12 @@ const VisualizationView = ({
           </div>
         </div>
 
-        <div className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
+        <div className="grid gap-6 lg:grid-cols-[1fr_1.1fr]">
           <div className="flex flex-col gap-6">
-            <div className="grid gap-4 sm:grid-cols-3">
+            <div className="grid gap-4 md:grid-cols-3">
               <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
                 <p className="text-xs uppercase tracking-wide text-slate-400">{t.born}</p>
-                <p className="mt-2 text-lg font-semibold text-slate-900">{formatDate(birthdate, language)}</p>
+                <p className="mt-2 text-base font-semibold text-slate-900 break-words">{formatDate(birthdate, language)}</p>
               </div>
               <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
                 <p className="text-xs uppercase tracking-wide text-slate-400">{t.weeksLived}</p>
@@ -438,7 +438,7 @@ const VisualizationView = ({
                 maxHeight: `${heightLimit}px`,
               }}
             >
-              <div className="flex h-full w-full items-start justify-center px-1 lg:justify-start">
+              <div className="flex h-full w-full items-start justify-center px-1 lg:justify-end">
                 <div
                   className="grid"
                   style={{
