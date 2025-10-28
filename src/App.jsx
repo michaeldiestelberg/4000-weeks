@@ -432,14 +432,13 @@ const VisualizationView = ({
           <div className="flex flex-col gap-6 rounded-3xl border border-slate-200 bg-white p-4 shadow-xl sm:p-8">
             <div
               ref={gridContainerRef}
-              className="relative mx-auto w-full"
+              className="relative w-full max-w-[680px]"
               style={{
-                maxWidth: 'min(100%, 680px)',
                 height: `${clampedGridHeight}px`,
                 maxHeight: `${heightLimit}px`,
               }}
             >
-              <div className="flex w-full items-center justify-center px-1">
+              <div className="flex h-full w-full items-start justify-center px-1 lg:justify-start">
                 <div
                   className="grid"
                   style={{
