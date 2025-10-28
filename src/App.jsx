@@ -197,20 +197,31 @@ const VisualizationView = ({
   onBack,
   dimensions,
 }) => {
-  const { cols, cellSize } = useMemo(() => {
+  const { cols, cellSize, gap } = useMemo(() => {
     const horizontalPadding = 120;
     const verticalPadding = 320;
     const safeWidth = Math.max(dimensions.width - horizontalPadding, 320);
     const safeHeight = Math.max(dimensions.height - verticalPadding, 320);
     const ratio = safeWidth / safeHeight;
-    const estimatedColumns = Math.ceil(Math.sqrt(TOTAL_WEEKS * ratio));
-    const rows = Math.ceil(TOTAL_WEEKS / estimatedColumns);
-    const size = Math.max(
-      Math.min(safeWidth / estimatedColumns, safeHeight / rows) * 0.9,
-      10,
-    );
 
-    return { cols: estimatedColumns, cellSize: size };
+    let estimatedColumns = Math.max(Math.ceil(Math.sqrt(TOTAL_WEEKS * ratio)), 1);
+    const cellGap = dimensions.width >= 1280 ? 6 : dimensions.width >= 768 ? 5 : dimensions.width >= 640 ? 4 : 3;
+
+    let availableWidth = safeWidth - cellGap * (estimatedColumns - 1);
+    while (availableWidth <= 0 && estimatedColumns > 1) {
+      estimatedColumns -= 1;
+      availableWidth = safeWidth - cellGap * (estimatedColumns - 1);
+    }
+
+    const rows = Math.ceil(TOTAL_WEEKS / estimatedColumns);
+    const availableHeight = safeHeight - cellGap * (rows - 1);
+    const rawSize = Math.min(
+      availableWidth > 0 ? availableWidth / estimatedColumns : safeWidth / estimatedColumns,
+      availableHeight > 0 ? availableHeight / rows : safeHeight / rows,
+    );
+    const size = Number.isFinite(rawSize) && rawSize > 0 ? rawSize : 4;
+
+    return { cols: estimatedColumns, cellSize: size, gap: cellGap };
   }, [dimensions.height, dimensions.width]);
 
   const shareLink = useMemo(() => {
@@ -311,10 +322,14 @@ const VisualizationView = ({
             </div>
           </div>
 
-          <div className="relative flex items-center justify-center overflow-hidden rounded-3xl border border-slate-200 bg-white p-4 shadow-xl sm:p-8">
+          <div className="relative flex items-center justify-center rounded-3xl border border-slate-200 bg-white p-4 shadow-xl sm:p-8">
             <div
-              className="grid gap-[3px] sm:gap-[4px]"
-              style={{ gridTemplateColumns: `repeat(${cols}, ${cellSize}px)` }}
+              className="grid"
+              style={{
+                gridTemplateColumns: `repeat(${cols}, ${cellSize}px)`,
+                gridAutoRows: `${cellSize}px`,
+                gap: `${gap}px`,
+              }}
             >
               {Array.from({ length: TOTAL_WEEKS }).map((_, index) => {
                 const state =
