@@ -1,0 +1,80 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="64" fill="#3B82F6"/>
+
+  <!-- Grid of dots representing weeks (8x8 grid for better visibility) -->
+  <g fill="#FFFFFF" opacity="0.25">
+    <circle cx="80" cy="80" r="20"/>
+    <circle cx="140" cy="80" r="20"/>
+    <circle cx="200" cy="80" r="20"/>
+    <circle cx="260" cy="80" r="20"/>
+    <circle cx="320" cy="80" r="20"/>
+    <circle cx="380" cy="80" r="20"/>
+    <circle cx="440" cy="80" r="20"/>
+
+    <circle cx="80" cy="140" r="20"/>
+    <circle cx="140" cy="140" r="20"/>
+    <circle cx="200" cy="140" r="20"/>
+    <circle cx="260" cy="140" r="20"/>
+    <circle cx="320" cy="140" r="20"/>
+    <circle cx="380" cy="140" r="20"/>
+    <circle cx="440" cy="140" r="20"/>
+
+    <circle cx="80" cy="200" r="20"/>
+    <circle cx="140" cy="200" r="20"/>
+    <circle cx="200" cy="200" r="20"/>
+    <circle cx="260" cy="200" r="20"/>
+    <circle cx="320" cy="200" r="20"/>
+    <circle cx="380" cy="200" r="20"/>
+    <circle cx="440" cy="200" r="20"/>
+
+    <circle cx="80" cy="260" r="20"/>
+    <circle cx="140" cy="260" r="20"/>
+    <circle cx="200" cy="260" r="20"/>
+    <circle cx="260" cy="260" r="20"/>
+    <circle cx="320" cy="260" r="20"/>
+    <circle cx="380" cy="260" r="20"/>
+    <circle cx="440" cy="260" r="20"/>
+
+    <circle cx="80" cy="320" r="20"/>
+    <circle cx="140" cy="320" r="20"/>
+    <circle cx="200" cy="320" r="20"/>
+    <circle cx="260" cy="320" r="20"/>
+    <circle cx="320" cy="320" r="20"/>
+    <circle cx="380" cy="320" r="20"/>
+    <circle cx="440" cy="320" r="20"/>
+
+    <circle cx="80" cy="380" r="20"/>
+    <circle cx="140" cy="380" r="20"/>
+    <circle cx="200" cy="380" r="20"/>
+    <circle cx="260" cy="380" r="20"/>
+    <circle cx="320" cy="380" r="20"/>
+    <circle cx="380" cy="380" r="20"/>
+    <circle cx="440" cy="380" r="20"/>
+
+    <circle cx="80" cy="440" r="20"/>
+    <circle cx="140" cy="440" r="20"/>
+    <circle cx="200" cy="440" r="20"/>
+    <circle cx="260" cy="440" r="20"/>
+    <circle cx="320" cy="440" r="20"/>
+    <circle cx="380" cy="440" r="20"/>
+    <circle cx="440" cy="440" r="20"/>
+  </g>
+
+  <!-- Highlighted dots (past weeks) -->
+  <g fill="#FFFFFF">
+    <circle cx="80" cy="80" r="20"/>
+    <circle cx="140" cy="80" r="20"/>
+    <circle cx="200" cy="80" r="20"/>
+    <circle cx="260" cy="80" r="20"/>
+    <circle cx="320" cy="80" r="20"/>
+    <circle cx="380" cy="80" r="20"/>
+
+    <circle cx="80" cy="140" r="20"/>
+    <circle cx="140" cy="140" r="20"/>
+    <circle cx="200" cy="140" r="20"/>
+    <circle cx="260" cy="140" r="20"/>
+  </g>
+
+  <!-- Current week (yellow dot) -->
+  <circle cx="320" cy="140" r="20" fill="#FCD34D"/>
+</svg>
