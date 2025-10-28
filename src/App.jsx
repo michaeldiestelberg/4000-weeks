@@ -86,6 +86,29 @@ const formatDate = (dateString, language) => {
   });
 };
 
+const useResizeObserver = () => {
+  const [node, setNode] = useState(null);
+  const [size, setSize] = useState({ width: 0, height: 0 });
+
+  useEffect(() => {
+    if (!node || typeof ResizeObserver === 'undefined') {
+      return undefined;
+    }
+
+    const observer = new ResizeObserver((entries) => {
+      if (!entries.length) return;
+      const { width, height } = entries[0].contentRect;
+      setSize({ width, height });
+    });
+
+    observer.observe(node);
+
+    return () => observer.disconnect();
+  }, [node]);
+
+  return [setNode, size];
+};
+
 const LanguageToggle = ({ language, onToggle, tone = 'light', className = '' }) => {
   const isDark = tone === 'dark';
   const baseClasses =
@@ -197,32 +220,42 @@ const VisualizationView = ({
   onBack,
   dimensions,
 }) => {
+  const [gridContainerRef, gridContainerSize] = useResizeObserver();
+
   const { cols, cellSize, gap } = useMemo(() => {
-    const horizontalPadding = 120;
-    const verticalPadding = 320;
-    const safeWidth = Math.max(dimensions.width - horizontalPadding, 320);
-    const safeHeight = Math.max(dimensions.height - verticalPadding, 320);
-    const ratio = safeWidth / safeHeight;
+    const fallbackWidth = Math.max(dimensions.width - 160, 320);
+    const width = gridContainerSize.width || fallbackWidth;
+    const preferredRatio = width >= 1280 ? 2.6 : width >= 1024 ? 2.3 : width >= 768 ? 2 : width >= 640 ? 1.7 : 1.5;
+    const gapSize = width >= 1280 ? 6 : width >= 1024 ? 5 : width >= 768 ? 4 : width >= 640 ? 4 : 3;
 
-    let estimatedColumns = Math.max(Math.ceil(Math.sqrt(TOTAL_WEEKS * ratio)), 1);
-    const cellGap = dimensions.width >= 1280 ? 6 : dimensions.width >= 768 ? 5 : dimensions.width >= 640 ? 4 : 3;
+    let estimatedColumns = Math.max(Math.ceil(Math.sqrt(TOTAL_WEEKS * preferredRatio)), 1);
+    estimatedColumns = Math.min(estimatedColumns, TOTAL_WEEKS);
 
-    let availableWidth = safeWidth - cellGap * (estimatedColumns - 1);
-    while (availableWidth <= 0 && estimatedColumns > 1) {
+    const calculateCellSize = (columns) => {
+      if (columns <= 0) return 0;
+      return Math.floor((width - gapSize * (columns - 1)) / columns);
+    };
+
+    let size = calculateCellSize(estimatedColumns);
+    while (size <= 2 && estimatedColumns > 1) {
       estimatedColumns -= 1;
-      availableWidth = safeWidth - cellGap * (estimatedColumns - 1);
+      size = calculateCellSize(estimatedColumns);
     }
 
     const rows = Math.ceil(TOTAL_WEEKS / estimatedColumns);
-    const availableHeight = safeHeight - cellGap * (rows - 1);
-    const rawSize = Math.min(
-      availableWidth > 0 ? availableWidth / estimatedColumns : safeWidth / estimatedColumns,
-      availableHeight > 0 ? availableHeight / rows : safeHeight / rows,
-    );
-    const size = Number.isFinite(rawSize) && rawSize > 0 ? rawSize : 4;
+    const maxHeight = gridContainerSize.height || Infinity;
+    const requiredHeight = rows * size + (rows - 1) * gapSize;
+    if (Number.isFinite(maxHeight) && requiredHeight > maxHeight) {
+      const heightBased = Math.floor((maxHeight - (rows - 1) * gapSize) / rows);
+      size = Math.max(Math.min(size, heightBased), 4);
+    }
 
-    return { cols: estimatedColumns, cellSize: size, gap: cellGap };
-  }, [dimensions.height, dimensions.width]);
+    return {
+      cols: estimatedColumns,
+      cellSize: Math.max(size, 4),
+      gap: gapSize,
+    };
+  }, [dimensions.width, gridContainerSize.height, gridContainerSize.width]);
 
   const shareLink = useMemo(() => {
     if (typeof window === 'undefined') {
@@ -322,41 +355,43 @@ const VisualizationView = ({
             </div>
           </div>
 
-          <div className="relative flex items-center justify-center rounded-3xl border border-slate-200 bg-white p-4 shadow-xl sm:p-8">
-            <div
-              className="grid"
-              style={{
-                gridTemplateColumns: `repeat(${cols}, ${cellSize}px)`,
-                gridAutoRows: `${cellSize}px`,
-                gap: `${gap}px`,
-              }}
-            >
-              {Array.from({ length: TOTAL_WEEKS }).map((_, index) => {
-                const state =
-                  index < weeks.lived
-                    ? 'past'
-                    : index === weeks.lived
-                      ? 'present'
-                      : 'future';
+          <div className="flex flex-col gap-6 rounded-3xl border border-slate-200 bg-white p-4 shadow-xl sm:p-8">
+            <div ref={gridContainerRef} className="w-full">
+              <div
+                className="grid justify-center"
+                style={{
+                  gridTemplateColumns: `repeat(${cols}, ${cellSize}px)`,
+                  gridAutoRows: `${cellSize}px`,
+                  gap: `${gap}px`,
+                }}
+              >
+                {Array.from({ length: TOTAL_WEEKS }).map((_, index) => {
+                  const state =
+                    index < weeks.lived
+                      ? 'past'
+                      : index === weeks.lived
+                        ? 'present'
+                        : 'future';
 
-                const palette =
-                  state === 'past'
-                    ? 'bg-slate-900'
-                    : state === 'present'
-                      ? 'bg-amber-400'
-                      : 'bg-slate-200';
+                  const palette =
+                    state === 'past'
+                      ? 'bg-slate-900'
+                      : state === 'present'
+                        ? 'bg-amber-400'
+                        : 'bg-slate-200';
 
-                return (
-                  <span
-                    key={index}
-                    className={`block h-full w-full rounded-full transition-colors duration-300 ${palette}`}
-                    style={{ width: `${cellSize}px`, height: `${cellSize}px` }}
-                  />
-                );
-              })}
+                  return (
+                    <span
+                      key={index}
+                      className={`block h-full w-full rounded-full transition-colors duration-300 ${palette}`}
+                      style={{ width: `${cellSize}px`, height: `${cellSize}px` }}
+                    />
+                  );
+                })}
+              </div>
             </div>
 
-            <div className="absolute bottom-4 left-1/2 flex -translate-x-1/2 flex-wrap items-center justify-center gap-6 rounded-full border border-slate-200 bg-white/95 px-6 py-3 text-xs text-slate-600 shadow-lg">
+            <div className="flex flex-wrap items-center justify-center gap-6 rounded-full border border-slate-200 bg-white/95 px-6 py-3 text-xs text-slate-600 shadow-lg">
               <div className="flex items-center gap-2">
                 <span className="inline-block h-2.5 w-2.5 rounded-full bg-slate-900" />
                 {t.past}
